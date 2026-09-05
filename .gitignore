@@ -1,4 +1,11 @@
 node_modules/
+/md2pdf
+default_css.h
+default_html.h
 *.md
 !README.md
 *.pdf
+*.css
+!default.css
+*.html
+!default.html

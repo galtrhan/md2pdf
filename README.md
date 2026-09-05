@@ -1,150 +1,186 @@
-# Markdown CV to PDF
+# Markdown to PDF
 
-Convert Markdown CV files to A4 PDF files with Chrome or Chromium.
+`md2pdf` converts Markdown files to A4 PDF files. It uses Chrome or Chromium to print the PDF.
 
 ## Requirements
 
-- Node.js and npm.
-- Google Chrome or Chromium.
+You need these items:
 
-## Setup
+- A C compiler (`cc` or `gcc`)
+- [libcmark-gfm](https://github.com/github/cmark-gfm) development files
+- Google Chrome or Chromium
 
-Run these commands after you clone the repository:
+On Arch Linux, install libcmark-gfm:
 
 ```sh
-chmod +x cv
-./cv --setup
+sudo pacman -S cmark-gfm
 ```
 
-The setup command installs dependencies in `node_modules` and creates or updates `package-lock.json`.
+On Debian or Ubuntu, install libcmark-gfm development files:
+
+```sh
+sudo apt install libcmark-gfm-dev
+```
+
+## Build
+
+Run this command in the repository root:
+
+```sh
+make
+```
+
+The build creates the `md2pdf` binary (about 26 KB). It embeds `default.css` and `default.html` in the binary.
+
+Edit `default.css` to change default typography, tables, headers, and print layout.
+
+Edit `default.html` to change the HTML shell. Use these placeholders:
+
+| Placeholder | Value |
+| ----------- | ----- |
+| `{{TITLE}}` | Document title |
+| `{{DEFAULT_CSS}}` | Embedded CSS from `default.css` |
+| `{{EXTRA_CSS}}` | CSS from `--stylesheet` |
+| `{{HEADER}}` | Header HTML from front matter |
+| `{{DOC_CLASS}}` | `doc` or `doc has-chrome` |
+| `{{BODY}}` | Rendered Markdown |
+| `{{FOOTER}}` | Footer HTML from front matter |
+
+Run `make` again after you change `default.css` or `default.html`.
+
+Install the binary to `/usr/local/bin`:
+
+```sh
+make install
+```
+
+To install to `/usr/bin`, run:
+
+```sh
+make install PREFIX=/usr
+```
 
 ## Usage
 
-Generate a PDF next to the input file:
-
 ```sh
-./cv INPUT.md
+./md2pdf INPUT.md
+./md2pdf INPUT.md OUTPUT.pdf
+./md2pdf --stylesheet cv.css INPUT
+./md2pdf -s proposal.css notes.md out/proposal.pdf
 ```
 
-The script replaces the input extension with `.pdf`.
+`INPUT` can omit the `.md` extension. The tool checks these names in order:
 
-Generate a PDF with a custom path:
+1. `INPUT`
+2. `INPUT.md`
+3. `INPUT.markdown`
 
-```sh
-./cv INPUT.md OUTPUT.pdf
-```
+If you omit `OUTPUT`, the tool writes `INPUT.pdf` in the same directory as the input file.
 
-The script creates missing output directories. It adds `.pdf` when the custom name has no extension.
+If `OUTPUT` has no `.pdf` extension, the tool adds `.pdf`.
 
 Show command help:
 
 ```sh
-./cv --help
+./md2pdf --help
 ```
 
-The input file must use the `.md` or `.markdown` extension. Relative paths use the current directory.
+## Page Header and Footer
 
-## Multiple CV Files
+Put YAML front matter at the top of the Markdown file:
 
-Keep tailored files separate:
-
-```text
-cv-backend.md
-cv-platform.md
-cv-full-stack.md
+```yaml
+---
+company: Example Ltd
+client: Acme Corp
+subtitle: Custom line under the company name
+logo: assets/logo.svg
+date: 2026-09-03
+reference: DOC-001
+footer: hello@example.com · +1 555 0100
+email: hello@example.com
+phone: +1 555 0100
+website: https://example.com
+footer-pages: true
+---
 ```
 
-Render each file with its own output name:
+### Front Matter Fields
 
-```sh
-./cv cv-backend.md applications/backend.pdf
-./cv cv-platform.md applications/platform.pdf
-```
+| Field | Purpose |
+| ----- | ------- |
+| `title` | Document title. It replaces the first `#` heading. |
+| `logo` | Image path. The path is relative to the Markdown file. |
+| `company` | Main header line on the left |
+| `client` | Left header subtitle as `Proposal for …` |
+| `subtitle` | Left header subtitle as free text. It replaces `client`. |
+| `date` | Right header line |
+| `reference` | Right header line |
+| `footer` | Left footer text |
+| `email` | Footer text when `footer` is empty |
+| `phone` | Footer text when `footer` is empty |
+| `website` | Footer text when `footer` is empty |
+| `footer-pages` | Page numbers on the right (`1 / 4`) |
 
-The renderer does not change the input file.
+The tool joins `email`, `phone`, and `website` with ` · ` when `footer` is empty.
 
-## Markdown Format
+Use `proposal.css` or your own stylesheet to style `.doc-header` and `.doc-footer`.
 
-Use standard Markdown headings and lists. The first level-one heading becomes the document title. The first level-two heading becomes the professional title.
+## Stylesheets
 
-Use this structure:
+The build compiles `default.css` into the binary. That file sets default typography and layout.
 
-```md
-# Candidate Name
+The build compiles `default.html` into the binary. That file sets the HTML document structure.
 
-## Backend Engineer
+Use `--stylesheet` or `-s` to add CSS after the defaults. This repository includes:
 
-City, Country  
-email@example.com  
-https://www.linkedin.com/in/example
+- `cv.css` — CV layout
+- `proposal.css` — proposal layout with header and footer spacing
 
-## Profile
+## Page Breaks
 
-Short professional summary.
-
-## Core Skills
-
-- PHP, Laravel, PHPUnit
-- Docker, AWS, MySQL
-
-## Professional Experience
-
-### Company Name
-
-**Backend Engineer** | January 2024 – Present
-
-- Delivered a production feature.
-```
-
-The renderer gives two-column styling to the list after an exact `## Core Skills` heading. Other lists use the normal document style.
-
-## Manual Page Breaks
-
-Place this comment on its own line before a section that must start on a new PDF page:
+Put this HTML comment on its own line before a section that must start on a new page:
 
 ```md
 <!-- pagebreak -->
 ```
 
-The comment stays invisible in Markdown previews. The renderer changes it into a print page break.
-
-## Customization
-
-- Edit `cv.css` for fonts, colors, spacing, margins, and section layout.
-- Edit `cv-template.html` for the HTML structure.
-- Edit `render-cv.mjs` for new Markdown processing rules.
-
-The default template provides A4 pages, selectable and searchable text, clickable links, print CSS, and standard headings for applicant tracking systems.
+These variants also work: `page-break`, `page break`.
 
 ## Browser Path
 
-The script checks these executable names:
+The tool searches for these program names on `PATH`:
 
 - `google-chrome`
 - `google-chrome-stable`
 - `chromium`
 - `chromium-browser`
 
-Set `CV_CHROME` when the browser uses another path:
+Set `MD2PDF_CHROME` or `CV_CHROME` when the browser is not on `PATH`:
 
 ```sh
-CV_CHROME=/path/to/chrome ./cv INPUT.md
+MD2PDF_CHROME=/path/to/chromium ./md2pdf INPUT.md
 ```
 
-## Troubleshooting
+You can also pass `--chrome /path/to/chromium`.
 
-If the script cannot find the input file, pass an existing `.md` or `.markdown` path.
+## CV Workflow
 
-If the script cannot find Chrome or Chromium, install a supported browser or set `CV_CHROME`.
+Keep one Markdown file per CV. Render each file separately:
 
-If the command returns a permission error, make the file executable with `chmod +x cv`.
+```sh
+./md2pdf --stylesheet cv.css cv-backend.md applications/backend.pdf
+./md2pdf --stylesheet cv.css cv-platform.md applications/platform.pdf
+```
+
+The first `#` heading becomes the document title.
 
 ## Git Files
 
-The repository ignores `*.md` and `*.pdf` files to keep private CV content and generated PDFs out of the repository. The tracked `README.md` remains available because `.gitignore` includes a `!README.md` exception.
+The repository ignores `*.md` and `*.pdf` files. `README.md` is not ignored.
 
-The repository also ignores `node_modules/`. It tracks the dependency definition and lock file.
+The repository also ignores the built `md2pdf` binary.
 
 ## License
 
-This project uses the MIT License. See `LICENSE` for the full license text.
+This project uses the MIT License. See `LICENSE`.

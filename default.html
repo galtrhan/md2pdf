@@ -1,16 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en"{{HTML_ATTRS}}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{CV_TITLE}}</title>
+  <title>{{TITLE}}</title>
   <style>
-{{CV_CSS}}
+{{DEFAULT_CSS}}
+{{EXTRA_CSS}}
   </style>
 </head>
 <body>
-  <main class="cv">
-{{CV_CONTENT}}
+{{HEADER}}
+  <main class="{{DOC_CLASS}}">
+{{BODY}}
   </main>
+{{FOOTER}}
 </body>
 </html>

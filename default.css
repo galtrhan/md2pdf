@@ -1,0 +1,256 @@
+:root {
+  --ink: #243447;
+  --muted: #52606d;
+  --accent: #0f766e;
+  --rule: #d9e2ec;
+  --paper: #ffffff;
+  --screen: #e8eef2;
+}
+
+@page {
+  size: 210mm 297mm;
+  margin: 15mm 16mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 11pt;
+}
+
+body {
+  margin: 0;
+  background: var(--screen);
+  color: var(--ink);
+  font-family: "Noto Sans", "DejaVu Sans", Arial, sans-serif;
+  line-height: 1.45;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.doc {
+  max-width: 178mm;
+  margin: 14mm auto;
+  padding: 14mm 16mm;
+  background: var(--paper);
+  box-shadow: 0 3mm 12mm rgb(16 42 67 / 12%);
+}
+
+.doc h1,
+.doc h2,
+.doc h3 {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.doc h1 {
+  margin: 0 0 0.4em;
+  font-size: 1.8em;
+  line-height: 1.1;
+}
+
+.doc h2 {
+  margin: 1.4em 0 0.5em;
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid var(--rule);
+  font-size: 1.1em;
+}
+
+.doc h3 {
+  margin: 1em 0 0.3em;
+  font-size: 1em;
+}
+
+.doc p {
+  margin: 0 0 0.6em;
+}
+
+.doc a {
+  color: var(--accent);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.doc ul,
+.doc ol {
+  margin: 0.4em 0 0.8em;
+  padding-left: 1.3em;
+}
+
+.doc li {
+  margin: 0 0 0.25em;
+  break-inside: avoid;
+}
+
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 0.92em;
+}
+
+.doc th,
+.doc td {
+  border: 1px solid var(--rule);
+  padding: 0.35em 0.5em;
+  text-align: left;
+}
+
+.doc th {
+  background: #f4f7fa;
+}
+
+.doc code {
+  font-family: "DejaVu Sans Mono", monospace;
+  font-size: 0.9em;
+  background: #f4f7fa;
+  padding: 0.1em 0.25em;
+  border-radius: 2px;
+}
+
+.doc pre {
+  background: #f4f7fa;
+  padding: 0.7em;
+  overflow-x: auto;
+  border-radius: 3px;
+  font-size: 0.88em;
+}
+
+.doc pre code {
+  background: none;
+  padding: 0;
+}
+
+.doc blockquote {
+  margin: 0.8em 0;
+  padding-left: 0.8em;
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+}
+
+.page-break {
+  height: 0;
+  break-before: page;
+  page-break-before: always;
+}
+
+.doc-header,
+.doc-footer {
+  display: none;
+}
+
+.doc-header__inner,
+.doc-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 0 16mm;
+}
+
+.doc-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.doc-header__logo {
+  display: block;
+  height: 10mm;
+  width: auto;
+  max-width: 44mm;
+  object-fit: contain;
+}
+
+.doc-header__company {
+  font-size: 10pt;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.doc-header__client {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 8.5pt;
+  line-height: 1.3;
+}
+
+.doc-header__meta {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 8.5pt;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.doc-footer__contact {
+  color: var(--muted);
+  font-size: 8pt;
+  line-height: 1.35;
+}
+
+.doc-footer__pages {
+  display: none;
+}
+
+@page numbered {
+  margin-bottom: 14mm;
+
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-size: 8pt;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    margin-right: 16mm;
+  }
+}
+
+html.has-page-numbers {
+  page: numbered;
+}
+
+@media print {
+  body {
+    background: var(--paper);
+  }
+
+  .doc {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .doc.has-chrome {
+    padding: calc(22mm + 6mm) 16mm calc(14mm + 6mm);
+  }
+
+  .doc-header,
+  .doc-footer {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background: var(--paper);
+  }
+
+  .doc-header {
+    top: 0;
+    height: 22mm;
+    padding-top: 4mm;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .doc-footer {
+    bottom: 0;
+    height: 14mm;
+    padding-top: 3mm;
+    border-top: 1px solid var(--rule);
+  }
+}
