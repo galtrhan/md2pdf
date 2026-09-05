@@ -39,6 +39,7 @@ Edit `default.html` to change the HTML shell. Use these placeholders:
 | Placeholder | Value |
 | ----------- | ----- |
 | `{{TITLE}}` | Document title |
+| `{{HTML_ATTRS}}` | Extra attributes on `<html>` (e.g. page-number class) |
 | `{{DEFAULT_CSS}}` | Embedded CSS from `default.css` |
 | `{{EXTRA_CSS}}` | CSS from `--stylesheet` |
 | `{{HEADER}}` | Header HTML from front matter |
@@ -67,6 +68,8 @@ make install PREFIX=/usr
 ./md2pdf INPUT.md OUTPUT.pdf
 ./md2pdf --stylesheet cv.css INPUT
 ./md2pdf -s proposal.css notes.md out/proposal.pdf
+./md2pdf --template custom.html INPUT.md
+./md2pdf -t custom.html -s cv.css INPUT.md
 ```
 
 `INPUT` can omit the `.md` extension. The tool checks these names in order:
@@ -126,13 +129,17 @@ The tool joins `email`, `phone`, and `website` with ` · ` when `footer` is empt
 
 Use `proposal.css` or your own stylesheet to style `.doc-header` and `.doc-footer`.
 
-## Stylesheets
+## Layout and styling
 
 The build compiles `default.css` into the binary. That file sets default typography and layout.
 
 The build compiles `default.html` into the binary. That file sets the HTML document structure.
 
-Use `--stylesheet` or `-s` to add CSS after the defaults. This repository includes:
+Use `--stylesheet` or `-s` to add CSS after the defaults.
+
+Use `--template` or `-t` to replace the built-in HTML shell with your own file. The file must use the same placeholders as `default.html` (see above).
+
+This repository includes:
 
 - `cv.css` — CV layout
 - `proposal.css` — proposal layout with header and footer spacing
@@ -156,7 +163,7 @@ The tool searches for these program names on `PATH`:
 - `chromium`
 - `chromium-browser`
 
-Set `MD2PDF_CHROME` or `CV_CHROME` when the browser is not on `PATH`:
+Set `MD2PDF_CHROME` when the browser is not on `PATH`:
 
 ```sh
 MD2PDF_CHROME=/path/to/chromium ./md2pdf INPUT.md

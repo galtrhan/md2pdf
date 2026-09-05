@@ -33,13 +33,14 @@ static void die_errno(const char *msg) {
 static void usage(void) {
   fputs(
       "Usage:\n"
-      "  md2pdf [--stylesheet FILE] INPUT [OUTPUT.pdf]\n"
+      "  md2pdf [--stylesheet FILE] [--template FILE] INPUT [OUTPUT.pdf]\n"
       "  md2pdf --help\n"
       "\n"
       "Convert Markdown to PDF with Chrome or Chromium.\n"
       "\n"
       "Options:\n"
       "  -s, --stylesheet FILE  Extra CSS (merged after built-in defaults)\n"
+      "  -t, --template FILE    HTML template (replaces built-in default)\n"
       "  --chrome PATH          Browser executable (overrides env)\n"
       "  -v, --verbose          Show Chrome output (for debugging)\n"
       "  -h, --help             Show this help\n"
@@ -59,7 +60,7 @@ static void usage(void) {
       "  footer-pages: true\n"
       "  ---\n"
       "\n"
-      "Set MD2PDF_CHROME or CV_CHROME when the browser is not on PATH.\n",
+      "Set MD2PDF_CHROME when the browser is not on PATH.\n",
       stdout);
 }
 
@@ -832,9 +833,6 @@ static char *find_chrome(const char *override) {
   }
 
   const char *env = getenv("MD2PDF_CHROME");
-  if (!env || !env[0]) {
-    env = getenv("CV_CHROME");
-  }
   if (env && env[0]) {
     char *found = resolve_chrome_path(env);
     if (found) {
@@ -857,7 +855,7 @@ static char *find_chrome(const char *override) {
     }
   }
 
-  die("Chrome or Chromium is required. Set MD2PDF_CHROME or CV_CHROME.");
+  die("Chrome or Chromium is required. Set MD2PDF_CHROME.");
   return NULL;
 }
 
@@ -1173,6 +1171,7 @@ static char *render_template(const char *tmpl, const TemplatePart *parts, size_t
 }
 
 static char *build_html_document(
+    const char *html_template,
     const char *title,
     const char *html_attrs,
     const char *doc_class,
@@ -1191,10 +1190,7 @@ static char *build_html_document(
       {"{{FOOTER}}", footer_html ? footer_html : ""},
   };
 
-  return render_template(
-      DEFAULT_HTML_TEMPLATE,
-      parts,
-      sizeof(parts) / sizeof(parts[0]));
+  return render_template(html_template, parts, sizeof(parts) / sizeof(parts[0]));
 }
 
 static char *file_uri(const char *path) {
@@ -1272,6 +1268,7 @@ static int run_chrome_pdf(
 
 int main(int argc, char **argv) {
   const char *stylesheet = NULL;
+  const char *template_path = NULL;
   const char *chrome_override = NULL;
   const char *input_arg = NULL;
   const char *output_arg = NULL;
@@ -1297,6 +1294,13 @@ int main(int argc, char **argv) {
         die("missing value for --stylesheet");
       }
       stylesheet = argv[++i];
+      continue;
+    }
+    if (strcmp(arg, "--template") == 0 || strcmp(arg, "-t") == 0) {
+      if (i + 1 >= argc) {
+        die("missing value for --template");
+      }
+      template_path = argv[++i];
       continue;
     }
     if (strcmp(arg, "--chrome") == 0) {
@@ -1436,7 +1440,27 @@ int main(int argc, char **argv) {
     }
   }
 
+  char *custom_template = NULL;
+  if (template_path) {
+    custom_template = read_file(template_path, NULL);
+    if (!custom_template) {
+      free(extra_css);
+      free(header_html);
+      free(footer_html);
+      free(body_html);
+      free(title);
+      free(input_dir);
+      doc_meta_free(&meta);
+      free(input_abs);
+      free(output_abs);
+      die_errno("read template");
+    }
+  }
+
+  const char *html_template =
+      custom_template ? custom_template : DEFAULT_HTML_TEMPLATE;
   char *document = build_html_document(
+      html_template,
       title,
       html_attrs,
       doc_class,
@@ -1444,6 +1468,7 @@ int main(int argc, char **argv) {
       footer_html,
       body_html,
       extra_css);
+  free(custom_template);
   free(header_html);
   free(footer_html);
   free(body_html);
@@ -1457,8 +1482,8 @@ int main(int argc, char **argv) {
     die("build HTML");
   }
 
-  char html_template[] = "/tmp/md2pdf-html-XXXXXX";
-  int html_fd = mkstemp(html_template);
+  char html_tmp[] = "/tmp/md2pdf-html-XXXXXX";
+  int html_fd = mkstemp(html_tmp);
   if (html_fd < 0) {
     free(document);
     free(input_abs);
@@ -1467,18 +1492,18 @@ int main(int argc, char **argv) {
   }
 
   char html_path[PATH_MAX];
-  if (snprintf(html_path, sizeof(html_path), "%s.html", html_template) >= (int)sizeof(html_path)) {
+  if (snprintf(html_path, sizeof(html_path), "%s.html", html_tmp) >= (int)sizeof(html_path)) {
     close(html_fd);
-    unlink(html_template);
+    unlink(html_tmp);
     free(document);
     free(input_abs);
     free(output_abs);
     die("temporary file path too long");
   }
 
-  if (rename(html_template, html_path) != 0) {
+  if (rename(html_tmp, html_path) != 0) {
     close(html_fd);
-    unlink(html_template);
+    unlink(html_tmp);
     free(document);
     free(input_abs);
     free(output_abs);
