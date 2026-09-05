@@ -139,11 +139,6 @@ Use `--stylesheet` or `-s` to add CSS after the defaults.
 
 Use `--template` or `-t` to replace the built-in HTML shell with your own file. The file must use the same placeholders as `default.html` (see above).
 
-This repository includes:
-
-- `cv.css` — CV layout
-- `proposal.css` — proposal layout with header and footer spacing
-
 ## Page Breaks
 
 Put this HTML comment on its own line before a section that must start on a new page:
@@ -170,23 +165,6 @@ MD2PDF_CHROME=/path/to/chromium ./md2pdf INPUT.md
 ```
 
 You can also pass `--chrome /path/to/chromium`.
-
-## CV Workflow
-
-Keep one Markdown file per CV. Render each file separately:
-
-```sh
-./md2pdf --stylesheet cv.css cv-backend.md applications/backend.pdf
-./md2pdf --stylesheet cv.css cv-platform.md applications/platform.pdf
-```
-
-The first `#` heading becomes the document title.
-
-## Git Files
-
-The repository ignores `*.md` and `*.pdf` files. `README.md` is not ignored.
-
-The repository also ignores the built `md2pdf` binary.
 
 ## License
 
